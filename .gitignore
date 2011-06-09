@@ -1,0 +1,12 @@
+
+/bin
+/ipch
+/Tests/simpletest/Debug
+/libxptrace/Debug
+/payload-windows/Debug
+/xptraced-windows/obj
+*.filters
+*.user
+*.suo
+*.sdf
+*.opensdf
