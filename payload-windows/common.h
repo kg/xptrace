@@ -1,0 +1,1 @@
+#define PAYLOAD_EXPORT(return_type) extern "C" __declspec(dllexport) return_type __stdcall
