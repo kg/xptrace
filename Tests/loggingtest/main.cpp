@@ -5,8 +5,8 @@ void function_with_marker () {
     XPTRACE_MARKER(marker);
 }
 
-void set_marker_enabled (xptrace::marker::id id, void * newState) {
-    xptrace_set_marker_enabled(id, reinterpret_cast<bool>(newState));
+void set_marker_enabled (xptrace::markerid id, void * newState) {
+    xptrace_set_marker_enabled_by_id(id, reinterpret_cast<bool>(newState));
 }
 
 int main () {

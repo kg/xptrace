@@ -3,7 +3,7 @@
         __pragma(strict_gs_check, push, off) \
         __pragma(check_stack, off) \
         __declspec(noinline) static void __fastcall subname () { \
-            static const xptrace::marker::id id = xptrace_register_marker(__FUNCTION__, _ReturnAddress()); \
+            static const xptrace::markerid id = xptrace_register_marker(__FUNCTION__, _ReturnAddress()); \
             xptrace_marker_hit(id); \
         }; \
         __pragma(strict_gs_check, pop) \

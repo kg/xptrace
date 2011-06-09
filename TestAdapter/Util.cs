@@ -8,7 +8,10 @@ namespace XPTrace {
             var psi = new ProcessStartInfo(filename, arguments) {
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
-                UseShellExecute = false
+                UseShellExecute = false,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                CreateNoWindow = true,
+                ErrorDialog = false
             };
 
             var output = new StringBuilder();

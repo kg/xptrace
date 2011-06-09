@@ -1,5 +1,4 @@
 #include "xptrace.h"
-#include "statics.h"
 
 #include <math.h>
 

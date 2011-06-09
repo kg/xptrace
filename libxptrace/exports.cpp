@@ -1,5 +1,4 @@
 #include "xptrace.h"
-#include "statics.h"
 #include "windows.h"
 
 using namespace xptrace;
@@ -7,14 +6,14 @@ using namespace xptrace;
 XPTRACE_EXPORT(void) xptrace_initialize () {
 }
 
-XPTRACE_EXPORT(marker::id) xptrace_register_marker (const char * name, const void * return_address) {
-    marker::id newId = markers.size();
+XPTRACE_EXPORT(markerid) xptrace_register_marker (const char * name, const void * return_address) {
+    markerid newId = markers.size();
     marker newMarker = {
         string(name), return_address, true
     };
     markers.push_back(newMarker);
 
-    xptrace_set_marker_enabled(newId, false);
+    xptrace_set_marker_enabled_by_id(newId, false);
 
     return newId;
 }
@@ -59,13 +58,13 @@ struct ChangedPageProtection {
     }
 };
 
-XPTRACE_EXPORT(bool) xptrace_get_marker_enabled (marker::id id) {
+XPTRACE_EXPORT(bool) xptrace_get_marker_enabled_by_id (markerid id) {
     return markers[id].enabled;
 }
 
-XPTRACE_EXPORT(bool) xptrace_set_marker_enabled (marker::id id, bool newState) {
+XPTRACE_EXPORT(bool) xptrace_set_marker_enabled_by_id (markerid id, bool newState) {
     auto marker = &markers[id];
-    if (marker->enabled == newState)
+    if ((marker->enabled == newState) && (marker->initialized))
         return true;
 
     marker->enabled = newState;
@@ -98,7 +97,19 @@ XPTRACE_EXPORT(bool) xptrace_set_marker_enabled (marker::id id, bool newState) {
     return true;
 }
 
-XPTRACE_EXPORT(void) xptrace_marker_hit (marker::id id) {
+XPTRACE_EXPORT(bool) xptrace_add_marker_callback_by_id (markerid id, marker_callback callback, void * userdata) {
+    auto marker = &markers[id];
+
+    callback_entry newentry = {
+        callback, userdata
+    };
+
+    marker->callbacks.push_back(newentry);
+
+    return true;
+}
+
+XPTRACE_EXPORT(void) xptrace_marker_hit (markerid id) {
     auto marker = markers[id];
 
     if (xptrace::logging_enabled) {
@@ -112,6 +123,11 @@ XPTRACE_EXPORT(void) xptrace_marker_hit (marker::id id) {
         }
     }
 
+    if (marker.initialized && marker.enabled) {
+        for (auto iter = marker.callbacks.begin(); iter != marker.callbacks.end(); ++iter)
+            iter->callback(id, iter->userdata);
+    }
+
     return;
 }
 
@@ -121,7 +137,7 @@ XPTRACE_EXPORT(bool) xptrace_set_logging_enabled (bool newState) {
     return oldState;
 }
 
-XPTRACE_EXPORT(void) xptrace_enumerate_markers (marker_enumerator callback, void * userdata) {
+XPTRACE_EXPORT(void) xptrace_enumerate_markers (marker_callback callback, void * userdata) {
     int size = markers.size();
 
     for (unsigned int i = 0; i < size; i++)

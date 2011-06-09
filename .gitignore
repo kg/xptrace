@@ -1,7 +1,7 @@
 
 /bin
 /ipch
-/Tests/simpletest/Debug
+/Tests/*test/Debug
 /libxptrace/Debug
 /payload-windows/Debug
 /xptraced-windows/obj
@@ -11,3 +11,4 @@
 *.sdf
 *.opensdf
 /_ReSharper.xptrace
+/TestAdapter/obj
