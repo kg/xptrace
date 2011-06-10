@@ -74,4 +74,8 @@ namespace xptrace {
 #include "marker.h"
 #include "api.h"
 
+#ifdef XPTRACE_IMPL
+#include "inline.h"
+#endif
+
 #endif

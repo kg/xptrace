@@ -27,7 +27,7 @@ XPTRACE_EXPORT(void) xptrace_initialize () {
 XPTRACE_EXPORT(markerid) xptrace_register_marker (const char * name, const void * return_address) {
     markerid newId = markers.size();
     marker newMarker = {
-        string(name), return_address, true
+        newId, string(name), return_address, true
     };
     markers.push_back(newMarker);
 
@@ -125,6 +125,47 @@ XPTRACE_EXPORT(bool) xptrace_add_marker_callback_by_id (markerid id, marker_call
     marker->callbacks.push_back(newentry);
 
     return true;
+}
+
+XPTRACE_EXPORT(bool) xptrace_set_marker_enabled (const char * wildcard, bool newState) {
+    struct setter {
+        bool enabled;
+
+        setter (bool enabled) {
+            this->enabled = enabled;
+        }
+
+        void operator () (marker& marker) {
+            xptrace_set_marker_enabled_by_id(marker.id, enabled);
+        }
+    };
+
+    enumerate_markers_matching(wildcard, setter(newState));
+
+    return false;
+}
+
+XPTRACE_EXPORT(bool) xptrace_add_marker_callback (const char * wildcard, xptrace::marker_callback callback, void * userdata) {
+    struct adder {
+        xptrace::marker_callback callback;
+        void * userdata;
+
+        adder (xptrace::marker_callback callback, void * userdata) {
+            this->callback = callback;
+            this->userdata = userdata;
+        }
+
+        void operator () (marker& marker) {
+            callback_entry entry = {
+                callback, userdata
+            };
+            marker.callbacks.push_back(entry);
+        }
+    };
+
+    enumerate_markers_matching(wildcard, adder(callback, userdata));
+
+    return false;
 }
 
 XPTRACE_EXPORT(void) xptrace_marker_hit (markerid id) {

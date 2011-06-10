@@ -38,8 +38,24 @@ namespace XPTrace {
         }
 
         [Test]
-        public void CallbackTest () {
-            var output = Util.RunProcess("callbacktest.exe");
+        public void AddCallbackAfterMarkerInitialized () {
+            var output = Util.RunProcess("callbacktest.exe", "0");
+            Assert.AreEqual(
+                new[] {
+                    "0", "1", "2",
+                    "marker_callback(0, 1)",
+                    "3",
+                    "marker_callback(0, 1)",
+                    "marker_callback(0, 2)",
+                    "4"
+                },
+                output.Split(new[] { Environment.NewLine }, StringSplitOptions.None)
+            );
+        }
+
+        [Test]
+        public void AddCallbackBeforeMarkerInitialized () {
+            var output = Util.RunProcess("callbacktest.exe", "1");
             Assert.AreEqual(
                 new[] {
                     "0", "1", "2",

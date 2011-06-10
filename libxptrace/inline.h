@@ -16,27 +16,15 @@ The Initial Developer of the Original Code is Mozilla Corporation.
 Original Author: Kevin Gadd (kevin.gadd@gmail.com)
 */
 
-#include <map>
-#include <vector>
+#include "wildcard.h"
 
-namespace xptrace {
+template <typename Callback> __forceinline void enumerate_markers_matching (const char * wildcard, Callback callback) {
+    int size = markers.size();
 
-    struct callback_entry {
-        marker_callback callback;
-        void * userdata;
-    };
+    for (unsigned int i = 0; i < size; i++) {
+        xptrace::marker& marker = markers[i];
 
-    struct marker {
-        markerid id;
-        string name;
-        const void * return_address;
-        bool enabled, initialized;
-        unsigned char original_bytes[SIZEOF_CALL];
-        std::vector<callback_entry> callbacks;
-    };
-
-    extern std::vector<marker> markers;
-
-    extern bool logging_enabled;
-
+        if (wildcmp(wildcard, marker.name.characters))
+            callback(marker);
+    }
 }

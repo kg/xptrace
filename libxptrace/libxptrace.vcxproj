@@ -80,8 +80,10 @@
   <ItemGroup>
     <ClInclude Include="api.h" />
     <ClInclude Include="common.h" />
+    <ClInclude Include="inline.h" />
     <ClInclude Include="marker.h" />
     <ClInclude Include="statics.h" />
+    <ClInclude Include="wildcard.h" />
     <ClInclude Include="xptrace.h" />
   </ItemGroup>
   <ItemGroup>

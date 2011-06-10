@@ -18,6 +18,7 @@ Original Author: Kevin Gadd (kevin.gadd@gmail.com)
 
 #include "xptrace.h"
 #include "stdio.h"
+#include "stdlib.h"
 
 void function_with_marker () {
     XPTRACE_MARKER(marker);
@@ -35,28 +36,65 @@ void add_marker_callback (xptrace::markerid id, void * userdata) {
     xptrace_add_marker_callback_by_id(id, marker_callback, userdata);
 }
 
-int main () {
-    printf("0\n");
+int main (int argc, const char * argv[]) {
+    if (argc != 2)
+        return 1;
 
-    function_with_marker();
+    switch (atoi(argv[1])) {
+        case 0: {
+            printf("0\n");
 
-    printf("1\n");
+            function_with_marker();
 
-    xptrace_enumerate_markers(add_marker_callback, reinterpret_cast<void *>(1));
+            printf("1\n");
 
-    function_with_marker();
+            xptrace_enumerate_markers(add_marker_callback, reinterpret_cast<void *>(1));
 
-    printf("2\n");
+            function_with_marker();
 
-    xptrace_enumerate_markers(set_marker_enabled, reinterpret_cast<void *>(true));
+            printf("2\n");
 
-    function_with_marker();
+            xptrace_enumerate_markers(set_marker_enabled, reinterpret_cast<void *>(true));
 
-    printf("3\n");
+            function_with_marker();
 
-    xptrace_enumerate_markers(add_marker_callback, reinterpret_cast<void *>(2));
+            printf("3\n");
 
-    function_with_marker();
+            xptrace_enumerate_markers(add_marker_callback, reinterpret_cast<void *>(2));
 
-    printf("4\n");
+            function_with_marker();
+
+            printf("4\n");
+
+            return 0;
+        }
+
+        case 1: {
+            xptrace_set_marker_enabled("*", true);
+            xptrace_add_marker_callback("function_with_marker::marker*", marker_callback, reinterpret_cast<void *>(3));
+
+            printf("0\n");
+
+            function_with_marker();
+
+            printf("1\n");
+
+            function_with_marker();
+
+            printf("2\n");
+
+            xptrace_set_marker_enabled("*", true);
+            xptrace_add_marker_callback("function_with_marker::marker*", marker_callback, reinterpret_cast<void *>(4));
+
+            function_with_marker();
+
+            printf("3\n");
+
+            function_with_marker();
+
+            printf("4\n");
+
+            return 0;
+        }
+    }
 }
