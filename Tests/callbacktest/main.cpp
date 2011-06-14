@@ -70,8 +70,8 @@ int main (int argc, const char * argv[]) {
         }
 
         case 1: {
-            xptrace_set_marker_enabled("*", true);
-            xptrace_add_marker_callback("function_with_marker::marker*", marker_callback, reinterpret_cast<void *>(3));
+            xptrace_set_markers_enabled("*", true);
+            xptrace_add_markers_callback("function_with_marker::marker*", marker_callback, reinterpret_cast<void *>(3));
 
             printf("0\n");
 
@@ -83,8 +83,8 @@ int main (int argc, const char * argv[]) {
 
             printf("2\n");
 
-            xptrace_set_marker_enabled("*", true);
-            xptrace_add_marker_callback("function_with_marker::marker*", marker_callback, reinterpret_cast<void *>(4));
+            xptrace_set_markers_enabled("*", true);
+            xptrace_add_markers_callback("function_with_marker::marker*", marker_callback, reinterpret_cast<void *>(4));
 
             function_with_marker();
 

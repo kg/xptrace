@@ -18,6 +18,7 @@ Original Author: Kevin Gadd (kevin.gadd@gmail.com)
 
 #include <map>
 #include <vector>
+#include <list>
 
 namespace xptrace {
 
@@ -35,7 +36,20 @@ namespace xptrace {
         std::vector<callback_entry> callbacks;
     };
 
+    struct callback_wildcard {
+        string wildcard;
+        marker_callback callback;
+        void * userdata;
+    };
+
+    struct enabled_wildcard {
+        string wildcard;
+        bool enabled;
+    };
+
     extern std::vector<marker> markers;
+    extern std::list<callback_wildcard> callback_wildcards;
+    extern std::list<enabled_wildcard> enabled_wildcards;
 
     extern bool logging_enabled;
 

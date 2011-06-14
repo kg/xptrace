@@ -21,6 +21,8 @@ Original Author: Kevin Gadd (kevin.gadd@gmail.com)
 namespace xptrace {
 
     std::vector<marker> markers;
+    std::list<callback_wildcard> callback_wildcards;
+    std::list<enabled_wildcard> enabled_wildcards;
 
     bool logging_enabled = false;
 

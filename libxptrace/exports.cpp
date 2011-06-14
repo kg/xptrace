@@ -31,7 +31,19 @@ XPTRACE_EXPORT(markerid) xptrace_register_marker (const char * name, const void 
     };
     markers.push_back(newMarker);
 
-    xptrace_set_marker_enabled_by_id(newId, false);
+    bool enabledState = false;
+
+    for (auto iter = enabled_wildcards.begin(), end = enabled_wildcards.end(); iter != end; ++iter) {
+        if (wildcmp(iter->wildcard.characters, name))
+            enabledState = iter->enabled;
+    }
+
+    for (auto iter = callback_wildcards.begin(), end = callback_wildcards.end(); iter != end; ++iter) {
+        if (wildcmp(iter->wildcard.characters, name))
+            xptrace_add_marker_callback_by_id(newId, iter->callback, iter->userdata);
+    }
+
+    xptrace_set_marker_enabled_by_id(newId, enabledState);
 
     return newId;
 }
@@ -127,7 +139,7 @@ XPTRACE_EXPORT(bool) xptrace_add_marker_callback_by_id (markerid id, marker_call
     return true;
 }
 
-XPTRACE_EXPORT(bool) xptrace_set_marker_enabled (const char * wildcard, bool newState) {
+XPTRACE_EXPORT(bool) xptrace_set_markers_enabled (const char * wildcard, bool newState) {
     struct setter {
         bool enabled;
 
@@ -142,10 +154,15 @@ XPTRACE_EXPORT(bool) xptrace_set_marker_enabled (const char * wildcard, bool new
 
     enumerate_markers_matching(wildcard, setter(newState));
 
+    enabled_wildcard wc = {
+        string(wildcard), newState
+    };
+    enabled_wildcards.push_back(wc);
+
     return false;
 }
 
-XPTRACE_EXPORT(bool) xptrace_add_marker_callback (const char * wildcard, xptrace::marker_callback callback, void * userdata) {
+XPTRACE_EXPORT(bool) xptrace_add_markers_callback (const char * wildcard, xptrace::marker_callback callback, void * userdata) {
     struct adder {
         xptrace::marker_callback callback;
         void * userdata;
@@ -164,6 +181,12 @@ XPTRACE_EXPORT(bool) xptrace_add_marker_callback (const char * wildcard, xptrace
     };
 
     enumerate_markers_matching(wildcard, adder(callback, userdata));
+
+    callback_wildcard wc = {
+        string(wildcard),
+        callback, userdata
+    };
+    callback_wildcards.push_back(wc);
 
     return false;
 }

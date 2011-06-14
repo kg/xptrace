@@ -32,5 +32,5 @@ XPTRACE_EXPORT(bool) xptrace_add_marker_callback_by_id (xptrace::markerid id, xp
 
 XPTRACE_EXPORT(void) xptrace_enumerate_markers (xptrace::marker_callback callback, void * userdata);
 
-XPTRACE_EXPORT(bool) xptrace_set_marker_enabled (const char * wildcard, bool newState);
-XPTRACE_EXPORT(bool) xptrace_add_marker_callback (const char * wildcard, xptrace::marker_callback callback, void * userdata);
+XPTRACE_EXPORT(bool) xptrace_set_markers_enabled (const char * wildcard, bool newState);
+XPTRACE_EXPORT(bool) xptrace_add_markers_callback (const char * wildcard, xptrace::marker_callback callback, void * userdata);

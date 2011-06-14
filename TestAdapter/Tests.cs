@@ -58,12 +58,12 @@ namespace XPTrace {
             var output = Util.RunProcess("callbacktest.exe", "1");
             Assert.AreEqual(
                 new[] {
-                    "0", "1", "2",
-                    "marker_callback(0, 1)",
-                    "3",
-                    "marker_callback(0, 1)",
-                    "marker_callback(0, 2)",
-                    "4"
+                    "0", "marker_callback(0, 3)", 
+                    "1", "marker_callback(0, 3)", 
+                    "2", "marker_callback(0, 3)", 
+                    "marker_callback(0, 4)", 
+                    "3", "marker_callback(0, 3)", 
+                    "marker_callback(0, 4)", "4"
                 },
                 output.Split(new[] { Environment.NewLine }, StringSplitOptions.None)
             );
