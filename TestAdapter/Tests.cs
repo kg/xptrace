@@ -24,7 +24,7 @@ namespace XPTrace {
     public class Tests {
         [Test]
         public void LoggingTest () {
-            var output = Util.RunProcess("loggingtest.exe");
+            var output = Util.RunProcess("loggingtest.exe", "0");
             Assert.AreEqual(
                 new[] {
                     "0",
@@ -32,6 +32,25 @@ namespace XPTrace {
                     "1", "2",
                     "marker hit: 0 'function_with_marker::marker::hit'", 
                     "3", "4"
+                },
+                output.Split(new[] { Environment.NewLine }, StringSplitOptions.None)
+            );
+        }
+
+        [Test]
+        public void FunctionTiming () {
+            var output = Util.RunProcess("loggingtest.exe", "1");
+            Assert.AreEqual(
+                new[] {
+                    "0", "marker hit: 0 'timed_function::enter'", 
+                    "timed_function(1)", 
+                    "marker hit: 1 'timed_function::exit'", 
+                    "1", "marker hit: 0 'timed_function::enter'", 
+                    "timed_function(2)", 
+                    "marker hit: 0 'timed_function::enter'", 
+                    "timed_function(1)", 
+                    "marker hit: 1 'timed_function::exit'", 
+                    "marker hit: 1 'timed_function::exit'", "2"
                 },
                 output.Split(new[] { Environment.NewLine }, StringSplitOptions.None)
             );

@@ -27,6 +27,48 @@ Original Author: Kevin Gadd (kevin.gadd@gmail.com)
         __pragma(strict_gs_check, pop) \
         __pragma(check_stack) \
     }; \
-    name::subname(); 
+    name::subname()
 
 #define XPTRACE_MARKER(name) XPTRACE_MARKER_2(name, hit)
+
+#define XPTRACE_TIME_FUNCTION \
+    struct __call_timer { \
+        __pragma(strict_gs_check, push, off) \
+        __pragma(check_stack, off) \
+        __forceinline static void names (const char *& enter_name, const char *& exit_name) { \
+            static bool initialized = false; \
+            static const char * enter_name_storage, * exit_name_storage; \
+            if (!initialized) { \
+                initialized = true; \
+                enter_name_storage = enter_name; \
+                exit_name_storage = exit_name; \
+            } else { \
+                enter_name = enter_name_storage; \
+                exit_name = exit_name_storage; \
+            } \
+        } \
+        __declspec(noinline) static void enter () { \
+            const char * enter_name, * exit_name; \
+            __call_timer::names(enter_name, exit_name); \
+            static const xptrace::markerid id = xptrace_register_marker(enter_name, _ReturnAddress()); \
+            xptrace_marker_hit(id); \
+        }; \
+        __declspec(noinline) static void exit () { \
+            const char * enter_name, * exit_name; \
+            __call_timer::names(enter_name, exit_name); \
+            static const xptrace::markerid id = xptrace_register_marker(exit_name, _ReturnAddress()); \
+            xptrace_marker_hit(id); \
+        }; \
+        __forceinline __call_timer (const char * enter_name, const char * exit_name) { \
+            __call_timer::names(enter_name, exit_name); \
+            __call_timer::enter(); \
+        }; \
+        __forceinline ~__call_timer () { \
+            __call_timer::exit(); \
+        }; \
+        __pragma(strict_gs_check, pop) \
+        __pragma(check_stack) \
+    } ___call_timer( \
+        __FUNCTION__ "::enter", \
+        __FUNCTION__ "::exit" \
+    ); void
