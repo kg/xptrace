@@ -24,7 +24,7 @@ template <typename Callback> __forceinline void enumerate_markers_matching (cons
     for (unsigned int i = 0; i < size; i++) {
         xptrace::marker& marker = markers[i];
 
-        if (wildcmp(wildcard, marker.name.characters))
+        if (wildcmp(wildcard, marker.name.c_str()))
             callback(marker);
     }
 }

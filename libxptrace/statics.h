@@ -19,6 +19,7 @@ Original Author: Kevin Gadd (kevin.gadd@gmail.com)
 #include <map>
 #include <vector>
 #include <list>
+#include <string>
 
 namespace xptrace {
 
@@ -27,9 +28,14 @@ namespace xptrace {
         void * userdata;
     };
 
+    static inline bool operator == (callback_entry lhs, callback_entry rhs) {
+        return (lhs.callback == rhs.callback) &&
+            (lhs.userdata == rhs.userdata);
+    }
+
     struct marker {
         markerid id;
-        string name;
+        std::string name;
         const void * return_address;
         bool enabled, initialized;
         unsigned char original_bytes[SIZEOF_CALL];
@@ -37,13 +43,25 @@ namespace xptrace {
     };
 
     struct callback_wildcard {
-        string wildcard;
+        std::string wildcard;
         marker_callback callback;
         void * userdata;
+
+        inline void operator = (const callback_wildcard& rhs) {
+            wildcard = rhs.wildcard;
+            callback = rhs.callback;
+            userdata = rhs.userdata;
+        }
     };
 
+    static inline bool operator == (callback_wildcard lhs, callback_wildcard rhs) {
+        return (lhs.wildcard == rhs.wildcard) && 
+            (lhs.callback == rhs.callback) &&
+            (lhs.userdata == rhs.userdata);
+    }
+
     struct enabled_wildcard {
-        string wildcard;
+        std::string wildcard;
         bool enabled;
     };
 

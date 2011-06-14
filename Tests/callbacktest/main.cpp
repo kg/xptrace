@@ -96,5 +96,24 @@ int main (int argc, const char * argv[]) {
 
             return 0;
         }
+
+        case 2: {
+            xptrace_set_markers_enabled("*", true);
+            xptrace_add_markers_callback("function_with_marker::marker*", marker_callback, reinterpret_cast<void *>(3));
+
+            printf("0\n");
+
+            function_with_marker();
+
+            printf("1\n");
+
+            xptrace_remove_markers_callback("function_with_marker::marker*", marker_callback, reinterpret_cast<void *>(3));
+
+            function_with_marker();
+
+            printf("2\n");
+
+            return 0;
+        }
     }
 }

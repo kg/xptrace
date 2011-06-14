@@ -18,6 +18,7 @@ Original Author: Kevin Gadd (kevin.gadd@gmail.com)
 
 #include "xptrace.h"
 #include "windows.h"
+#include <algorithm>
 
 using namespace xptrace;
 
@@ -27,19 +28,19 @@ XPTRACE_EXPORT(void) xptrace_initialize () {
 XPTRACE_EXPORT(markerid) xptrace_register_marker (const char * name, const void * return_address) {
     markerid newId = markers.size();
     marker newMarker = {
-        newId, string(name), return_address, true
+        newId, std::string(name), return_address, true
     };
     markers.push_back(newMarker);
 
     bool enabledState = false;
 
     for (auto iter = enabled_wildcards.begin(), end = enabled_wildcards.end(); iter != end; ++iter) {
-        if (wildcmp(iter->wildcard.characters, name))
+        if (wildcmp(iter->wildcard.c_str(), name))
             enabledState = iter->enabled;
     }
 
     for (auto iter = callback_wildcards.begin(), end = callback_wildcards.end(); iter != end; ++iter) {
-        if (wildcmp(iter->wildcard.characters, name))
+        if (wildcmp(iter->wildcard.c_str(), name))
             xptrace_add_marker_callback_by_id(newId, iter->callback, iter->userdata);
     }
 
@@ -155,7 +156,7 @@ XPTRACE_EXPORT(bool) xptrace_set_markers_enabled (const char * wildcard, bool ne
     enumerate_markers_matching(wildcard, setter(newState));
 
     enabled_wildcard wc = {
-        string(wildcard), newState
+        std::string(wildcard), newState
     };
     enabled_wildcards.push_back(wc);
 
@@ -183,10 +184,39 @@ XPTRACE_EXPORT(bool) xptrace_add_markers_callback (const char * wildcard, xptrac
     enumerate_markers_matching(wildcard, adder(callback, userdata));
 
     callback_wildcard wc = {
-        string(wildcard),
+        std::string(wildcard),
         callback, userdata
     };
     callback_wildcards.push_back(wc);
+
+    return false;
+}
+
+XPTRACE_EXPORT(bool) xptrace_remove_markers_callback (const char * wildcard, xptrace::marker_callback callback, void * userdata) {
+    struct remover {
+        callback_entry entry;
+
+        remover (callback_entry entry) {
+            this->entry = entry;
+        }
+
+        void operator () (marker& marker) {
+            auto erase_from = std::remove(marker.callbacks.begin(), marker.callbacks.end(), this->entry);
+            marker.callbacks.erase(erase_from, marker.callbacks.end());
+        }
+    };
+
+    callback_entry entry = {
+        callback, userdata
+    };
+    enumerate_markers_matching(wildcard, remover(entry));
+
+    callback_wildcard wc = {
+        std::string(wildcard),
+        callback, userdata
+    };
+    auto erase_from = std::remove(callback_wildcards.begin(), callback_wildcards.end(), wc);
+    callback_wildcards.erase(erase_from, callback_wildcards.end());
 
     return false;
 }
@@ -197,11 +227,11 @@ XPTRACE_EXPORT(void) xptrace_marker_hit (markerid id) {
     if (xptrace::logging_enabled) {
         if (marker.initialized) {
             if (marker.enabled)
-                printf("marker hit: %x '%s'\n", id, marker.name);
+                printf("marker hit: %x '%s'\n", id, marker.name.c_str());
             else
-                printf("disabled marker hit: %x '%s'\n", id, marker.name);
+                printf("disabled marker hit: %x '%s'\n", id, marker.name.c_str());
         } else {
-            printf("uninitialized marker hit: %x '%s'\n", id, marker.name);
+            printf("uninitialized marker hit: %x '%s'\n", id, marker.name.c_str());
         }
     }
 

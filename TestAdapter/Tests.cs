@@ -68,5 +68,18 @@ namespace XPTrace {
                 output.Split(new[] { Environment.NewLine }, StringSplitOptions.None)
             );
         }
+
+        [Test]
+        public void RemoveCallback () {
+            var output = Util.RunProcess("callbacktest.exe", "2");
+            Assert.AreEqual(
+                new[] {
+                    "0",
+                    "marker_callback(0, 3)",
+                    "1", "2"
+                },
+                output.Split(new[] { Environment.NewLine }, StringSplitOptions.None)
+            );
+        }
     }
 }

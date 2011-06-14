@@ -34,6 +34,11 @@ namespace xptrace {
         return result;
     }
 
+    void string::operator = (const string& rhs) {
+        characters = rhs.characters;
+        length = rhs.length;
+    }
+
     bool operator < (const string& lhs, const string& rhs) {
         return lhs.compareTo(rhs) < 0;
     }

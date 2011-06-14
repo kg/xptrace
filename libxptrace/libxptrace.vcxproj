@@ -89,7 +89,6 @@
   <ItemGroup>
     <ClCompile Include="exports.cpp" />
     <ClCompile Include="statics.cpp" />
-    <ClCompile Include="types.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
