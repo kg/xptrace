@@ -32,21 +32,27 @@ Original Author: Kevin Gadd (kevin.gadd@gmail.com)
 #define XPTRACE_MARKER(name) XPTRACE_MARKER_2(name, hit)
 
 #define XPTRACE_TIME_FUNCTION \
-    __pragma(strict_gs_check(push, off)) \
-    __pragma(check_stack(off)) \
-    static const char * __enter = __FUNCTION__ "::enter"; \
-    static const char * __exit = __FUNCTION__ "::exit"; \
+    static const char * __enter_name = __FUNCTION__ "::enter"; \
+    static const char * __exit_name = __FUNCTION__ "::exit"; \
     struct call_timer { \
-        __declspec(noinline) call_timer::call_timer () { \
-            static const xptrace::markerid id = xptrace_register_marker(__enter); \
+        __pragma(strict_gs_check(push, off)) \
+        __pragma(check_stack(off)) \
+        __declspec(noinline) void __fastcall _enter () { \
+            static const xptrace::markerid id = xptrace_register_marker(__enter_name); \
             xptrace_marker_hit(id, _ReturnAddress()); \
+        } \
+        __declspec(noinline) void __fastcall _exit () { \
+            static const xptrace::markerid id = xptrace_register_marker(__exit_name); \
+            xptrace_marker_hit(id, _ReturnAddress()); \
+        } \
+        __declspec(noinline) call_timer::call_timer () { \
+            _enter(); \
         } \
         __declspec(noinline) call_timer::~call_timer () { \
-            static const xptrace::markerid id = xptrace_register_marker(__exit); \
-            xptrace_marker_hit(id, _ReturnAddress()); \
+            _exit(); \
         } \
+        __pragma(strict_gs_check(pop)) \
+        __pragma(check_stack) \
     } _call_timer; \
-    __pragma(strict_gs_check(pop)) \
-    __pragma(check_stack) \
     void
 
