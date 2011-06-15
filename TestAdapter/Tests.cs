@@ -27,10 +27,11 @@ namespace XPTrace {
             var output = Util.RunProcess("loggingtest.exe", "0");
             Assert.AreEqual(
                 new[] {
-                    "0",
-                    "disabled marker hit: 0 'function_with_marker::marker::hit'",
-                    "1", "2",
-                    "marker hit: 0 'function_with_marker::marker::hit'", 
+                    "0", "disabled marker hit: 0 'function_with_marker::marker::hit'",
+                    "1", "disabled marker hit: 0 'function_with_marker::marker::hit'",
+                    "2", "marker hit: 0 'function_with_marker::marker::hit'",
+                    "3", "disabled marker hit: 0 'function_with_marker::marker::hit'",
+                    "4", "0", "1", "2", "marker hit: 0 'function_with_marker::marker::hit'",
                     "3", "4"
                 },
                 output.Split(new[] { Environment.NewLine }, StringSplitOptions.None)
@@ -51,6 +52,20 @@ namespace XPTrace {
                     "timed_function(1)", 
                     "marker hit: 1 'timed_function::exit'", 
                     "marker hit: 1 'timed_function::exit'", "2"
+                },
+                output.Split(new[] { Environment.NewLine }, StringSplitOptions.None)
+            );
+        }
+
+        [Test]
+        public void ManyTimingCalls () {
+            const int num_iterations = 1024 * 1024 * 64;
+            var output = Util.RunProcess("loggingtest.exe", String.Format("2 {0}", num_iterations));
+            Assert.AreEqual(
+                new[] {
+                    String.Format("Running {0} iteration(s) with markers enabled...", num_iterations),
+                    String.Format("Running {0} iteration(s) with markers disabled...", num_iterations),
+                    "ok."
                 },
                 output.Split(new[] { Environment.NewLine }, StringSplitOptions.None)
             );

@@ -21,8 +21,8 @@ extern "C" {
     #pragma intrinsic(_ReturnAddress)
 }
 
-XPTRACE_EXPORT(xptrace::markerid) xptrace_register_marker (const char * name, const void * return_address);
-XPTRACE_EXPORT(void) xptrace_marker_hit (xptrace::markerid id);
+XPTRACE_EXPORT(xptrace::markerid) xptrace_register_marker (const char * name);
+XPTRACE_EXPORT(void) xptrace_marker_hit (xptrace::markerid id, void * returnAddress);
 
 XPTRACE_EXPORT(bool) xptrace_set_logging_enabled (bool newState);
 

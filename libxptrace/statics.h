@@ -33,12 +33,15 @@ namespace xptrace {
             (lhs.userdata == rhs.userdata);
     }
 
+    struct callsite_info {
+        unsigned char original_bytes[SIZEOF_CALL];
+    };
+
     struct marker {
         markerid id;
         std::string name;
-        const void * return_address;
-        bool enabled, initialized;
-        unsigned char original_bytes[SIZEOF_CALL];
+        bool enabled;
+        std::map<const void *, callsite_info> callsites;
         std::vector<callback_entry> callbacks;
     };
 

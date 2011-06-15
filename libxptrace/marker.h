@@ -18,13 +18,13 @@ Original Author: Kevin Gadd (kevin.gadd@gmail.com)
 
 #define XPTRACE_MARKER_2(name, subname) \
     struct name { \
-        __pragma(strict_gs_check, push, off) \
-        __pragma(check_stack, off) \
+        __pragma(strict_gs_check(push, off)) \
+        __pragma(check_stack(off)) \
         __declspec(noinline) static void __fastcall subname () { \
-            static const xptrace::markerid id = xptrace_register_marker(__FUNCTION__, _ReturnAddress()); \
-            xptrace_marker_hit(id); \
+            static const xptrace::markerid id = xptrace_register_marker(__FUNCTION__); \
+            xptrace_marker_hit(id, _ReturnAddress()); \
         }; \
-        __pragma(strict_gs_check, pop) \
+        __pragma(strict_gs_check(pop)) \
         __pragma(check_stack) \
     }; \
     name::subname()
@@ -32,21 +32,21 @@ Original Author: Kevin Gadd (kevin.gadd@gmail.com)
 #define XPTRACE_MARKER(name) XPTRACE_MARKER_2(name, hit)
 
 #define XPTRACE_TIME_FUNCTION \
-    __pragma(strict_gs_check, push, off) \
-    __pragma(check_stack, off) \
+    __pragma(strict_gs_check(push, off)) \
+    __pragma(check_stack(off)) \
     static const char * __enter = __FUNCTION__ "::enter"; \
     static const char * __exit = __FUNCTION__ "::exit"; \
     struct call_timer { \
         __declspec(noinline) call_timer::call_timer () { \
-            static const xptrace::markerid id = xptrace_register_marker(__enter, _ReturnAddress()); \
-            xptrace_marker_hit(id); \
+            static const xptrace::markerid id = xptrace_register_marker(__enter); \
+            xptrace_marker_hit(id, _ReturnAddress()); \
         } \
         __declspec(noinline) call_timer::~call_timer () { \
-            static const xptrace::markerid id = xptrace_register_marker(__exit, _ReturnAddress()); \
-            xptrace_marker_hit(id); \
+            static const xptrace::markerid id = xptrace_register_marker(__exit); \
+            xptrace_marker_hit(id, _ReturnAddress()); \
         } \
     } _call_timer; \
-    __pragma(strict_gs_check, pop) \
-    __pragma(check_stack, restore) \
+    __pragma(strict_gs_check(pop)) \
+    __pragma(check_stack) \
     void
 
