@@ -1,9 +1,12 @@
 
 /bin
 /ipch
-/Tests/*test/Debug
+/Tests/*/Debug
+/Tests/*/Release
 /libxptrace/Debug
+/libxptrace/Release
 /payload-windows/Debug
+/payload-windows/Release
 /xptraced-windows/obj
 *.filters
 *.user

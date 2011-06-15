@@ -22,10 +22,41 @@ using NUnit.Framework;
 namespace XPTrace {
     [TestFixture]
     public class Tests {
+        static void AssertProcessOutput (string filename, string arguments, string[] expectedOutput) {
+            long started = DateTime.UtcNow.Ticks;
+            var output = Util.RunProcess(filename, arguments);
+            long elapsed = DateTime.UtcNow.Ticks - started;
+
+            try {
+                Assert.AreEqual(
+                    expectedOutput,
+                    output.Split(new[] { Environment.NewLine }, StringSplitOptions.None)
+                );
+                Console.WriteLine("---- '{0}' '{1}' ran in {2:00.000}s. ----", filename, arguments, TimeSpan.FromTicks(elapsed).TotalSeconds);
+            } catch {
+                Console.WriteLine("---- '{0}' '{1}' output ----", filename, arguments);
+                Console.WriteLine(output);
+                Console.WriteLine("----");
+                throw;
+            }
+        }
+
         [Test]
         public void LoggingTest () {
-            var output = Util.RunProcess("loggingtest.exe", "0");
-            Assert.AreEqual(
+            AssertProcessOutput(
+                "loggingtest_debug.exe", "0",
+                new[] {
+                    "0", "disabled marker hit: 0 'function_with_marker::marker::hit'",
+                    "1", 
+                    "2", "marker hit: 0 'function_with_marker::marker::hit'",
+                    "3", "4", "0", "1", "2", 
+                    "marker hit: 0 'function_with_marker::marker::hit'",
+                    "3", "4"
+                }
+            );
+
+            AssertProcessOutput(
+                "loggingtest_release.exe", "0",
                 new[] {
                     "0", "disabled marker hit: 0 'function_with_marker::marker::hit'",
                     "1", "disabled marker hit: 0 'function_with_marker::marker::hit'",
@@ -33,15 +64,14 @@ namespace XPTrace {
                     "3", "disabled marker hit: 0 'function_with_marker::marker::hit'",
                     "4", "0", "1", "2", "marker hit: 0 'function_with_marker::marker::hit'",
                     "3", "4"
-                },
-                output.Split(new[] { Environment.NewLine }, StringSplitOptions.None)
+                }
             );
         }
 
         [Test]
         public void FunctionTiming () {
-            var output = Util.RunProcess("loggingtest.exe", "1");
-            Assert.AreEqual(
+            AssertProcessOutput(
+                "loggingtest_debug.exe", "1",
                 new[] {
                     "0", "marker hit: 0 'timed_function::enter'", 
                     "timed_function(1)", 
@@ -52,29 +82,52 @@ namespace XPTrace {
                     "timed_function(1)", 
                     "marker hit: 1 'timed_function::exit'", 
                     "marker hit: 1 'timed_function::exit'", "2"
-                },
-                output.Split(new[] { Environment.NewLine }, StringSplitOptions.None)
+                }
+            );
+
+            AssertProcessOutput(
+                "loggingtest_release.exe", "1",
+                new[] {
+                    "0", "marker hit: 0 'timed_function::enter'", 
+                    "timed_function(1)", 
+                    "marker hit: 1 'timed_function::exit'", 
+                    "1", "marker hit: 0 'timed_function::enter'", 
+                    "timed_function(2)", 
+                    "marker hit: 0 'timed_function::enter'", 
+                    "timed_function(1)", 
+                    "marker hit: 1 'timed_function::exit'", 
+                    "marker hit: 1 'timed_function::exit'", "2"
+                }
             );
         }
 
         [Test]
         public void ManyTimingCalls () {
-            const int num_iterations = 1024 * 1024 * 64;
-            var output = Util.RunProcess("loggingtest.exe", String.Format("2 {0}", num_iterations));
-            Assert.AreEqual(
+            int num_iterations = 1024 * 32;
+            AssertProcessOutput(
+                "loggingtest_debug.exe", String.Format("2 {0}", num_iterations),
                 new[] {
                     String.Format("Running {0} iteration(s) with markers enabled...", num_iterations),
                     String.Format("Running {0} iteration(s) with markers disabled...", num_iterations),
                     "ok."
-                },
-                output.Split(new[] { Environment.NewLine }, StringSplitOptions.None)
+                }
+            );
+
+            num_iterations = 1024 * 1024 * 4;
+            AssertProcessOutput(
+                "loggingtest_release.exe", String.Format("2 {0}", num_iterations),
+                new[] {
+                    String.Format("Running {0} iteration(s) with markers enabled...", num_iterations),
+                    String.Format("Running {0} iteration(s) with markers disabled...", num_iterations),
+                    "ok."
+                }
             );
         }
 
         [Test]
         public void AddCallbackAfterMarkerInitialized () {
-            var output = Util.RunProcess("callbacktest.exe", "0");
-            Assert.AreEqual(
+            AssertProcessOutput(
+                "callbacktest_debug.exe", "0",
                 new[] {
                     "0", "1", "2",
                     "marker_callback(0, 1)",
@@ -82,15 +135,26 @@ namespace XPTrace {
                     "marker_callback(0, 1)",
                     "marker_callback(0, 2)",
                     "4"
-                },
-                output.Split(new[] { Environment.NewLine }, StringSplitOptions.None)
+                }
+            );
+
+            AssertProcessOutput(
+                "callbacktest_release.exe", "0",
+                new[] {
+                    "0", "1", "2",
+                    "marker_callback(0, 1)",
+                    "3",
+                    "marker_callback(0, 1)",
+                    "marker_callback(0, 2)",
+                    "4"
+                }
             );
         }
 
         [Test]
         public void AddCallbackBeforeMarkerInitialized () {
-            var output = Util.RunProcess("callbacktest.exe", "1");
-            Assert.AreEqual(
+            AssertProcessOutput(
+                "callbacktest_debug.exe", "1",
                 new[] {
                     "0", "marker_callback(0, 3)", 
                     "1", "marker_callback(0, 3)", 
@@ -98,21 +162,40 @@ namespace XPTrace {
                     "marker_callback(0, 4)", 
                     "3", "marker_callback(0, 3)", 
                     "marker_callback(0, 4)", "4"
-                },
-                output.Split(new[] { Environment.NewLine }, StringSplitOptions.None)
+                }
+            );
+
+            AssertProcessOutput(
+                "callbacktest_release.exe", "1",
+                new[] {
+                    "0", "marker_callback(0, 3)", 
+                    "1", "marker_callback(0, 3)", 
+                    "2", "marker_callback(0, 3)", 
+                    "marker_callback(0, 4)", 
+                    "3", "marker_callback(0, 3)", 
+                    "marker_callback(0, 4)", "4"
+                }
             );
         }
 
         [Test]
         public void RemoveCallback () {
-            var output = Util.RunProcess("callbacktest.exe", "2");
-            Assert.AreEqual(
+            AssertProcessOutput(
+                "callbacktest_debug.exe", "2",
                 new[] {
                     "0",
                     "marker_callback(0, 3)",
                     "1", "2"
-                },
-                output.Split(new[] { Environment.NewLine }, StringSplitOptions.None)
+                }
+            );
+
+            AssertProcessOutput(
+                "callbacktest_release.exe", "2",
+                new[] {
+                    "0",
+                    "marker_callback(0, 3)",
+                    "1", "2"
+                }
             );
         }
     }
