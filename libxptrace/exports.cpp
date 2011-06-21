@@ -148,70 +148,80 @@ XPTRACE_EXPORT(void) xptrace_remove_marker_callback_by_id (markerid id, marker_c
     marker.callbacks.erase(erase_from, marker.callbacks.end());
 }
 
-XPTRACE_EXPORT(void) xptrace_set_markers_enabled (const char * wildcard, bool newState) {
-    struct setter {
+XPTRACE_EXPORT(int) xptrace_set_markers_enabled (const char * wildcard, bool newState) {
+    struct {
+        int count;
         bool enabled;
-
-        setter (bool enabled) {
-            this->enabled = enabled;
-        }
 
         void operator () (marker& marker) {
             xptrace_set_marker_enabled_by_id(marker.id, enabled);
-        }
-    };
 
-    enumerate_markers_matching(wildcard, setter(newState));
+            count += 1;
+        }
+    } setter;
+
+    setter.count = 0;
+    setter.enabled = newState;
+
+    enumerate_markers_matching(wildcard, setter);
 
     enabled_wildcard wc = {
         std::string(wildcard), newState
     };
     enabled_wildcards.push_back(wc);
+
+    return setter.count;
 }
 
-XPTRACE_EXPORT(void) xptrace_add_markers_callback (const char * wildcard, xptrace::marker_callback callback, void * userdata) {
-    struct adder {
+XPTRACE_EXPORT(int) xptrace_add_markers_callback (const char * wildcard, xptrace::marker_callback callback, void * userdata) {
+    struct {
+        int count;
         xptrace::marker_callback callback;
         void * userdata;
-
-        adder (xptrace::marker_callback callback, void * userdata) {
-            this->callback = callback;
-            this->userdata = userdata;
-        }
 
         void operator () (marker& marker) {
             callback_entry entry = {
                 callback, userdata
             };
             marker.callbacks.push_back(entry);
-        }
-    };
 
-    enumerate_markers_matching(wildcard, adder(callback, userdata));
+            count += 1;
+        }
+    } adder;
+
+    adder.count = 0;
+    adder.callback = callback;
+    adder.userdata = userdata;
+
+    enumerate_markers_matching(wildcard, adder);
 
     callback_wildcard wc = {
         std::string(wildcard),
         callback, userdata
     };
     callback_wildcards.push_back(wc);
+
+    return adder.count;
 }
 
-XPTRACE_EXPORT(void) xptrace_remove_markers_callback (const char * wildcard, xptrace::marker_callback callback, void * userdata) {
-    struct remover {
+XPTRACE_EXPORT(int) xptrace_remove_markers_callback (const char * wildcard, xptrace::marker_callback callback, void * userdata) {
+    struct {
+        int count;
         xptrace::marker_callback callback;
         void * userdata;
 
-        remover (xptrace::marker_callback callback, void * userdata) {
-            this->callback = callback;
-            this->userdata = userdata;
-        }
-
         void operator () (marker& marker) {
             xptrace_remove_marker_callback_by_id(marker.id, this->callback, this->userdata);
-        }
-    };
 
-    enumerate_markers_matching(wildcard, remover(callback, userdata));
+            count += 1;
+        }
+    } remover;
+
+    remover.count = 0;
+    remover.callback = callback;
+    remover.userdata = userdata;
+
+    enumerate_markers_matching(wildcard, remover);
 
     callback_wildcard wc = {
         std::string(wildcard),
@@ -219,6 +229,8 @@ XPTRACE_EXPORT(void) xptrace_remove_markers_callback (const char * wildcard, xpt
     };
     auto erase_from = std::remove(callback_wildcards.begin(), callback_wildcards.end(), wc);
     callback_wildcards.erase(erase_from, callback_wildcards.end());
+
+    return remover.count;
 }
 
 XPTRACE_EXPORT(void) xptrace_marker_hit (markerid id, void * returnAddress) {

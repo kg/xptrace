@@ -33,6 +33,6 @@ XPTRACE_EXPORT(void) xptrace_remove_marker_callback_by_id (xptrace::markerid id,
 
 XPTRACE_EXPORT(void) xptrace_enumerate_markers (xptrace::marker_callback callback, void * userdata);
 
-XPTRACE_EXPORT(void) xptrace_set_markers_enabled (const char * wildcard, bool newState);
-XPTRACE_EXPORT(void) xptrace_add_markers_callback (const char * wildcard, xptrace::marker_callback callback, void * userdata);
-XPTRACE_EXPORT(void) xptrace_remove_markers_callback (const char * wildcard, xptrace::marker_callback callback, void * userdata);
+XPTRACE_EXPORT(int) xptrace_set_markers_enabled (const char * wildcard, bool newState);
+XPTRACE_EXPORT(int) xptrace_add_markers_callback (const char * wildcard, xptrace::marker_callback callback, void * userdata);
+XPTRACE_EXPORT(int) xptrace_remove_markers_callback (const char * wildcard, xptrace::marker_callback callback, void * userdata);
