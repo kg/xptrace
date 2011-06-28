@@ -3,41 +3,39 @@ namespace payload {
     #pragma pack(1)
 
     enum ipcMessageType : unsigned {
-        ipc_defineString,
+        ipc_setLogging,
         ipc_setEnabled
     };
 
     struct ipcMessage {
+        unsigned id;
         ipcMessageType type;
 
         union {
             struct {
-                size_t characterCount;
-            } defineString;
+                unsigned char newState;
+            } setLogging;
 
             struct {
-                unsigned wildcardStringId;
-                bool newState;
+                unsigned char newState;
+                unsigned wildcardOffset;
+                unsigned wildcardLength;
             } setEnabled;
         };
-
-        unsigned char body[1];
     };
 
     struct ipcResponse {
+        unsigned id;
         ipcMessageType type;
 
         union {
             struct {
-                unsigned stringId;
-            } defineString;
+            } setLogging;
 
             struct {
                 int enabledCount;
             } setEnabled;
         };
-
-        unsigned char body[1];
     };
 
     #pragma pack(pop)

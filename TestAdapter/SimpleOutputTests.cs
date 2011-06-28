@@ -21,26 +21,7 @@ using NUnit.Framework;
 
 namespace XPTrace {
     [TestFixture]
-    public class Tests {
-        static void AssertProcessOutput (string filename, string arguments, string[] expectedOutput) {
-            long started = DateTime.UtcNow.Ticks;
-            var output = Util.RunProcess(filename, arguments);
-            long elapsed = DateTime.UtcNow.Ticks - started;
-
-            try {
-                Assert.AreEqual(
-                    expectedOutput,
-                    output.Split(new[] { Environment.NewLine }, StringSplitOptions.None)
-                );
-                Console.WriteLine("---- '{0}' '{1}' ran in {2:00.000}s. ----", filename, arguments, TimeSpan.FromTicks(elapsed).TotalSeconds);
-            } catch {
-                Console.WriteLine("---- '{0}' '{1}' output ----", filename, arguments);
-                Console.WriteLine(output);
-                Console.WriteLine("----");
-                throw;
-            }
-        }
-
+    public class SimpleOutputTests : SimpleFixture {
         [Test]
         public void LoggingTest () {
             AssertProcessOutput(

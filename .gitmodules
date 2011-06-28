@@ -1,0 +1,6 @@
+[submodule "Upstream/Fracture"]
+	path = Upstream/Fracture
+	url = git://github.com/kevingadd/Fracture.git
+[submodule "Upstream/PETools"]
+	path = Upstream/PETools
+	url = git@github.com:kevingadd/PETools.git

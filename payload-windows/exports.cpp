@@ -1,8 +1,6 @@
 #include "payload.h"
 #include "windows.h"
-
-#include <string>
-#include <vector>
+#include "stdio.h"
 
 using namespace xptrace;
 
@@ -12,16 +10,25 @@ typedef BOOL (WINAPI *pChangeWindowMessageFilter) (
 
 HWND g_ownerWindow;
 int g_ipcMessageId;
-std::vector<std::string> g_stringTable;
 
-static unsigned defineString (payload::ipcMessage * message, size_t size) {
-    return 0;
+static void copy (void * dest, const void * src, size_t size) {
+    unsigned char * pDest = reinterpret_cast<unsigned char *>(dest);
+    const unsigned char * pSrc = reinterpret_cast<const unsigned char *>(src);
+
+    for (unsigned i = 0; i < size; i++) {
+        *pDest = *pSrc;
+        pDest += 1;
+        pSrc += 1;
+    }
 }
 
 static void respond (payload::ipcResponse * response, size_t size) {
+    void * pRegion = VirtualAlloc(0, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+    copy(pRegion, response, size);
+
     PostMessage(
         g_ownerWindow, g_ipcMessageId, 
-        reinterpret_cast<WPARAM>(response), 
+        reinterpret_cast<WPARAM>(pRegion), 
         reinterpret_cast<LPARAM>(reinterpret_cast<void *>(size))
     ); 
 }
@@ -59,23 +66,35 @@ PAYLOAD_EXPORT(int) payload_threadProc (HWND ownerWindow) {
         payload::ipcMessage * ipc = reinterpret_cast<payload::ipcMessage *>(msg.wParam);
         size_t size = reinterpret_cast<size_t>(reinterpret_cast<void *>(msg.lParam));
 
+        payload::ipcResponse response;
+        response.id = ipc->id;
+        bool responseValid = true;
+
         switch (ipc->type) {
-            case payload::ipc_defineString: {
-                payload::ipcResponse response;
-                response.type = payload::ipc_defineString;
-                response.defineString.stringId = defineString(ipc, size);
-                respond(&response, sizeof(response));
+            case payload::ipc_setLogging: {
+                xptrace_set_logging_enabled(ipc->setLogging.newState);
+
+                response.type = payload::ipc_setLogging;
             } break;
 
             case payload::ipc_setEnabled: {
-                std::string& wildcard = g_stringTable[ipc->setEnabled.wildcardStringId];
+                auto pWildcard = reinterpret_cast<const char *>(ipc) + 
+                    sizeof(payload::ipcMessage) + ipc->setEnabled.wildcardOffset;
 
-                payload::ipcResponse response;
                 response.type = payload::ipc_setEnabled;
-                response.setEnabled.enabledCount = xptrace_set_markers_enabled(wildcard.c_str(), ipc->setEnabled.newState);
-                respond(&response, sizeof(response));
+                response.setEnabled.enabledCount = xptrace_set_markers_enabled(
+                    pWildcard, ipc->setEnabled.newState
+                );
+            } break;
+
+            default: {
+                MessageBoxA(0, "unknown", "payload", 0);
+                responseValid = false;
             } break;
         }
+
+        if (responseValid)
+            respond(&response, sizeof(response));
 
         // Free the memory block(s) containing the message
         VirtualFree(ipc, 0, MEM_RELEASE);
